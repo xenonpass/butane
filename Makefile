@@ -4,6 +4,9 @@ AR      = ar
 CFLAGS    = -std=c11 -Wall -Wextra -Wpedantic -O2 -I include -I src
 LDFLAGS   = # empty for now
 
+# aes-ni and pclmulqdq intrinsics
+AESNI_FLAGS = -maes -mpclmul -msse4.1
+
 SRC_DIR   = src
 TEST_DIR  = tests
 BUILD_DIR = build
@@ -23,6 +26,10 @@ all: $(LIB)
 
 $(OBJ_DIR) $(LIB_DIR) $(BUILD_DIR):
 	mkdir -p $@
+
+# aes256gcm needs hardware intrinsic flags
+$(OBJ_DIR)/aes256gcm.o: $(SRC_DIR)/aes256gcm.c | $(OBJ_DIR)
+	$(CC) $(CFLAGS) $(AESNI_FLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
