@@ -1,7 +1,8 @@
 CC      = gcc
 AR      = ar
 
-CFLAGS    = -std=c11 -Wall -Wextra -Wpedantic -O2 -I include -I src
+INC_FLAGS = -I include -I src/core -I src/crypto -I src/sys
+CFLAGS    = -std=c11 -Wall -Wextra -Wpedantic -O2 $(INC_FLAGS)
 LDFLAGS   = # empty for now
 
 # aes-ni and pclmulqdq intrinsics
@@ -13,12 +14,15 @@ BUILD_DIR = build
 OBJ_DIR   = $(BUILD_DIR)/obj
 LIB_DIR   = $(BUILD_DIR)/lib
 
-C_SRCS    = $(wildcard $(SRC_DIR)/*.c)
-C_OBJS    = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(C_SRCS))
+C_SRCS    = $(shell find $(SRC_DIR) -name '*.c')
+C_OBJS    = $(patsubst %.c, $(OBJ_DIR)/%.o, $(notdir $(C_SRCS)))
+
 LIB       = $(LIB_DIR)/libbutane.a
 
 TEST_SRCS = $(wildcard $(TEST_DIR)/*.c)
 TEST_BIN  = $(BUILD_DIR)/test_runner
+
+vpath %.c $(sort $(dir $(C_SRCS)))
 
 .PHONY: all clean test
 
@@ -28,10 +32,10 @@ $(OBJ_DIR) $(LIB_DIR) $(BUILD_DIR):
 	mkdir -p $@
 
 # aes256gcm needs hardware intrinsic flags
-$(OBJ_DIR)/aes256gcm.o: $(SRC_DIR)/aes256gcm.c | $(OBJ_DIR)
+$(OBJ_DIR)/aes256gcm.o: aes256gcm.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(AESNI_FLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+$(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(LIB): $(C_OBJS) | $(LIB_DIR)

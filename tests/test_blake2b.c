@@ -1,5 +1,5 @@
 #include "test_framework.h"
-#include "../src/blake2b.h"
+#include "blake2b.h"
 #include <string.h>
 
 static void test_blake2b_empty_input(void) {
