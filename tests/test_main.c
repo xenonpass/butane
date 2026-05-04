@@ -7,6 +7,7 @@ int _bt_tests_failed = 0;
 extern void run_context_tests(void);
 extern void run_blake2b_tests(void);
 extern void run_argon2id_tests(void);
+extern void run_aead_tests(void);
 
 int main(void) {
     printf("\n");
@@ -17,6 +18,7 @@ int main(void) {
     run_context_tests();
     run_blake2b_tests();
     run_argon2id_tests();
+    run_aead_tests();
 
     BT_REPORT();
     return BT_EXIT_CODE();
