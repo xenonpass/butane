@@ -50,3 +50,7 @@ compile_commands.json
 # os specific
 .DS_Store
 Thumbs.db
+
+# butane vault files (generated from cli)
+tests/vault
+*.butane
