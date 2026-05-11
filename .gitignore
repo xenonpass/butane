@@ -54,3 +54,6 @@ Thumbs.db
 # butane vault files (generated from cli)
 tests/vault
 *.butane
+
+# neomake cache (sinisterMage/neomake)
+.neomake/

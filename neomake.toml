@@ -1,0 +1,69 @@
+$cc = env("CC", "gcc")
+$ar = env("AR", "ar")
+
+
+$inc_flags = "-I include -I src/core -I src/crypto -I src/sys"
+$cflags    = "-std=c11 -Wall -Wextra -Wpedantic -O2 " + ${inc_flags}
+$ldflags   = env("LDFLAGS", "")
+
+
+$aesni_flags = "-maes -mpclmul -msse4.1" # compiler / linker flags
+
+
+$src_dir   = "src"
+$test_dir  = "tests"
+$build_dir = "build"
+$obj_dir   = "${build_dir}/obj"
+$lib_dir   = "${build_dir}/lib"# layout
+
+
+$lib_path = "${lib_dir}/libbutane.a"
+$test_bin = "${build_dir}/test_runner"
+$cli_bin  = "${build_dir}/butane"# outputs
+
+
+$headers      = glob("include/**/*.h") + glob("src/**/*.h")
+$lib_sources  = glob("src/**/*.c")
+$test_sources = glob("tests/*.c")
+$cli_sources  = glob("src/cli/*.c")
+
+# aes-ni + pclmulqdq intrinsics, used only by the aes compile unit.
+# inputs
+
+# compile-aes: aes-gcm unit with hardware intrinsics
+[tasks.compile-aes]
+inputs  = ["src/**/aes256gcm.c"] + ${headers}
+command = "mkdir -p ${obj_dir} && ${cc} ${cflags} ${aesni_flags} -c \"$(find ${src_dir} -name aes256gcm.c -print -quit)\" -o ${obj_dir}/aes256gcm.o"
+outputs = ["${obj_dir}/aes256gcm.o"]
+
+# compile-lib: every other library object file
+[tasks.compile-lib]
+inputs  = ${lib_sources} + ${headers}
+command = "mkdir -p ${obj_dir} && find ${src_dir} -name '*.c' -not -path '${src_dir}/cli/*' -not -name aes256gcm.c -print0 | xargs -0 -I {} sh -c '${cc} ${cflags} -c \"$1\" -o \"${obj_dir}/$(basename \"$1\" .c).o\"' _ {}"
+outputs = ["${obj_dir}/*.o"]
+
+# lib: archive everything in $(obj_dir) into libbutane.a
+[tasks.lib]
+command = "mkdir -p ${lib_dir} && ${ar} rcs ${lib_path} ${obj_dir}/*.o"
+deps = ["compile-aes", "compile-lib"]
+inputs = ["${obj_dir}/*.o"]
+outputs = ["${lib_path}"]
+
+# test-build: compile the test runner and link it against libbutane.a
+[tasks.test-build]
+inputs  = ${test_sources} + ${headers}
+command = "mkdir -p ${build_dir} && ${cc} ${cflags} ${test_dir}/*.c -L ${lib_dir} -lbutane ${ldflags} -o ${test_bin}"
+deps = ["lib"]
+outputs = ["${test_bin}"]
+
+# test: run the test binary
+[tasks.test]
+command = "./${test_bin}"
+deps = ["test-build"]
+
+# cli: build the `butane` cli, linked against libbutane.a
+[tasks.cli]
+inputs  = ${cli_sources} + ${headers}
+command = "mkdir -p ${build_dir} && ${cc} ${cflags} -I ${src_dir}/cli ${src_dir}/cli/*.c -L ${lib_dir} -lbutane ${ldflags} -o ${cli_bin}"
+deps = ["lib"]
+outputs = ["${cli_bin}"]
