@@ -9,6 +9,8 @@
 #include <sys/random.h>
 #elif defined(__APPLE__)
 #include <Security/SecRandom.h>
+#elif defined(_WIN32)
+#include <bcrypt.h>
 #else
 #include <fcntl.h>
 #include <unistd.h>
@@ -17,10 +19,16 @@
 // fill buffer with cryptographically secure random bytes
 static int secure_random_fill(uint8_t *buf, size_t len) {
 #if defined(__linux__)
+    // linux
     ssize_t result = getrandom(buf, len, 0);
     return (result == (ssize_t)len) ? 0 : -1;
 #elif defined(__APPLE__)
+    // apple
     return SecRandomCopyBytes(kSecRandomDefault, len, buf);
+#elif defined(_WIN32)
+    // windows
+    return BCryptGenRandom(NULL, buf, (ULONG)len,
+                           BCRYPT_USE_SYSTEM_PREFERRED_RNG) == 0 ? 0 : -1;
 #else
     int fd = open("/dev/urandom", O_RDONLY);
     if (fd < 0) return -1;
