@@ -3,7 +3,12 @@
 #include "internal.h"
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(_WIN32)
+#include <memoryapi.h>
+#else
 #include <sys/mman.h>
+#endif
 
 // alloc and init new contxt
 butane_t butane_init(void) {
@@ -14,7 +19,11 @@ butane_t butane_init(void) {
   memset(ctx, 0, sizeof(struct butane_ctx));
 
   // lock sensitive mem
+#if defined(_WIN32)
+  if (VirtualLock(ctx, sizeof(struct butane_ctx))) {
+#else
   if (mlock(ctx, sizeof(struct butane_ctx)) == 0) {
+#endif
     ctx->memory_locked = 1;
   } else {
     ctx->memory_locked = 0;
@@ -49,7 +58,11 @@ void butane_free(butane_t ctx) {
 
   // unlock if successfully locked
   if (ctx->memory_locked)
+#if defined(_WIN32)
+    VirtualUnlock(ctx, sizeof(struct butane_ctx));
+#else
     munlock(ctx, sizeof(struct butane_ctx));
+#endif
 
   butane_clean(ctx, sizeof(struct butane_ctx));
   free(ctx);

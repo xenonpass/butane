@@ -3,7 +3,11 @@
 #include "blake2b.h"
 #include <stdlib.h>
 #include <string.h>
+#if defined(_WIN32)
+#include <memoryapi.h>
+#else
 #include <sys/mman.h>
+#endif
 
 #define ARGON2_BLOCK_SIZE     1024
 #define ARGON2_QWORDS_IN_BLOCK 128
@@ -345,7 +349,11 @@ int butane_argon2id_hash(uint8_t *out, uint32_t out_len,
     if (!inst.memory)
         return BUTANE_ERR_NOMEM;
 
+#if defined(_WIN32)
+    VirtualLock(inst.memory, (SIZE_T)inst.memory_blocks * sizeof(block));
+#else
     mlock(inst.memory, (size_t)inst.memory_blocks * sizeof(block));
+#endif
 
     uint8_t blockhash[ARGON2_PREHASH_DIGEST_LENGTH];
     initial_hash(blockhash, password, password_len, salt, salt_len, params);
@@ -362,7 +370,11 @@ int butane_argon2id_hash(uint8_t *out, uint32_t out_len,
 
     finalize(out, out_len, &inst);
 
+#if defined(_WIN32)
+    VirtualUnlock(inst.memory, (SIZE_T)inst.memory_blocks * sizeof(block));
+#else
     munlock(inst.memory, (size_t)inst.memory_blocks * sizeof(block));
+#endif
     butane_clean(inst.memory, (size_t)inst.memory_blocks * sizeof(block));
     free(inst.memory);
 
