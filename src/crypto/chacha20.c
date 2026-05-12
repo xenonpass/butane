@@ -167,6 +167,78 @@ void hchacha20(uint8_t *subkey, const uint8_t *key, const uint8_t *nonce16) {
 
 // === poly1305 ===
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#include <intrin.h>
+typedef struct {
+    uint64_t low;
+    uint64_t high;
+} uint128_t;
+
+static inline uint128_t make128(uint64_t a) {
+    uint128_t r = {a, 0};
+    return r;
+}
+
+static inline uint128_t mul64x64(uint64_t a, uint64_t b) {
+    uint128_t r;
+#if defined(_M_X64) || defined(_M_AMD64) || defined(_M_ARM64)
+    r.low = _umul128(a, b, &r.high);
+#else
+    uint64_t a_lo = (uint32_t)a;
+    uint64_t a_hi = a >> 32;
+    uint64_t b_lo = (uint32_t)b;
+    uint64_t b_hi = b >> 32;
+    uint64_t p1 = a_lo * b_hi;
+    uint64_t p2 = a_hi * b_lo;
+    uint64_t p3 = a_hi * b_hi;
+    uint64_t mid = p1 + (uint32_t)((a_lo * b_lo) >> 32) + (uint32_t)p2;
+    r.low = a * b;
+    r.high = p3 + (p1 >> 32) + (p2 >> 32) + (mid >> 32);
+#endif
+    return r;
+}
+
+static inline uint128_t add128(uint128_t a, uint128_t b) {
+    uint128_t r;
+    r.low = a.low + b.low;
+    r.high = a.high + b.high + (r.low < a.low);
+    return r;
+}
+
+static inline uint128_t add128_64(uint128_t a, uint64_t b) {
+    uint128_t r;
+    r.low = a.low + b;
+    r.high = a.high + (r.low < a.low);
+    return r;
+}
+
+static inline uint64_t shift_right_42(uint128_t a) {
+    return (a.low >> 42) | (a.high << 22);
+}
+
+static inline uint64_t shift_right_44(uint128_t a) {
+    return (a.low >> 44) | (a.high << 20);
+}
+
+static inline uint64_t shift_right_64(uint128_t a) {
+    return a.high;
+}
+
+static inline uint64_t truncate_64(uint128_t a) {
+    return a.low;
+}
+#else
+typedef __uint128_t uint128_t;
+#define make128(a) ((uint128_t)(a))
+#define mul64x64(a, b) ((uint128_t)(a) * (b))
+#define add128(a, b) ((a) + (b))
+#define add128_64(a, b) ((a) + (b))
+#define shift_right_42(a) ((uint64_t)((a) >> 42))
+#define shift_right_44(a) ((uint64_t)((a) >> 44))
+#define shift_right_64(a) ((uint64_t)((a) >> 64))
+#define truncate_64(a) ((uint64_t)(a))
+#endif
+
 // poly1305 using 130-bit arithmetic with 64-bit limbs
 void poly1305_auth(uint8_t *tag, const uint8_t *msg, size_t msg_len,
                    const uint8_t *key32) {
@@ -210,23 +282,20 @@ void poly1305_auth(uint8_t *tag, const uint8_t *msg, size_t msg_len,
     h2 += ((m1 >> 24)) | (hibit << 40);
 
     // multiply and reduce
-    __uint128_t d0 =
-        (__uint128_t)h0 * rr0 + (__uint128_t)h1 * s2 + (__uint128_t)h2 * s1;
-    __uint128_t d1 =
-        (__uint128_t)h0 * rr1 + (__uint128_t)h1 * rr0 + (__uint128_t)h2 * s2;
-    __uint128_t d2 =
-        (__uint128_t)h0 * rr2 + (__uint128_t)h1 * rr1 + (__uint128_t)h2 * rr0;
+    uint128_t d0 = add128(add128(mul64x64(h0, rr0), mul64x64(h1, s2)), mul64x64(h2, s1));
+    uint128_t d1 = add128(add128(mul64x64(h0, rr1), mul64x64(h1, rr0)), mul64x64(h2, s2));
+    uint128_t d2 = add128(add128(mul64x64(h0, rr2), mul64x64(h1, rr1)), mul64x64(h2, rr0));
 
     // partial reduction mod 2^130-5
     uint64_t c;
-    h0 = (uint64_t)d0 & ((1ULL << 44) - 1);
-    c = (uint64_t)(d0 >> 44);
-    d1 += c;
-    h1 = (uint64_t)d1 & ((1ULL << 44) - 1);
-    c = (uint64_t)(d1 >> 44);
-    d2 += c;
-    h2 = (uint64_t)d2 & ((1ULL << 42) - 1);
-    c = (uint64_t)(d2 >> 42);
+    h0 = truncate_64(d0) & ((1ULL << 44) - 1);
+    c = shift_right_44(d0);
+    d1 = add128_64(d1, c);
+    h1 = truncate_64(d1) & ((1ULL << 44) - 1);
+    c = shift_right_44(d1);
+    d2 = add128_64(d2, c);
+    h2 = truncate_64(d2) & ((1ULL << 42) - 1);
+    c = shift_right_42(d2);
     h0 += c * 5;
     c = h0 >> 44;
     h0 &= (1ULL << 44) - 1;
@@ -269,10 +338,10 @@ void poly1305_auth(uint8_t *tag, const uint8_t *msg, size_t msg_len,
   uint64_t pad0 = load64_le(key32 + 16);
   uint64_t pad1 = load64_le(key32 + 24);
 
-  __uint128_t sum = (__uint128_t)f0 + pad0;
-  f0 = (uint64_t)sum;
-  sum = (__uint128_t)f1 + pad1 + (uint64_t)(sum >> 64);
-  f1 = (uint64_t)sum;
+  uint128_t sum = add128_64(make128(f0), pad0);
+  f0 = truncate_64(sum);
+  sum = add128_64(add128_64(make128(f1), pad1), shift_right_64(sum));
+  f1 = truncate_64(sum);
 
   store64_le(tag + 0, f0);
   store64_le(tag + 8, f1);
