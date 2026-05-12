@@ -22,7 +22,7 @@ jobs:
           key: neomake-install-main
       - name: Install neomake
         run: |
-          cargo install --locked --git https://github.com/sinisterMage/neomake.git --rev main neomake
+          cargo install --locked --git https://github.com/sinisterMage/neomake.git
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
