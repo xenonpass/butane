@@ -24,7 +24,7 @@ jobs:
           key: neomake-install-main
       - name: Install neomake
         run: |
-          cargo install --locked --git https://github.com/sinisterMage/neomake.git --rev main neomake
+          cargo install --locked --git https://github.com/sinisterMage/neomake
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - name: Build and Run Tests
         run: CC=${{ matrix.cc }} neomake run test cli
