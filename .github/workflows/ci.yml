@@ -17,11 +17,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Build and Run Tests
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: neomake-install-main
+      - name: Install neomake
         run: |
-          make CC=${{ matrix.cc }} clean
-          make CC=${{ matrix.cc }} test
-          make CC=${{ matrix.cc }} cli
+          cargo install --locked --git https://github.com/sinisterMage/neomake.git --rev main neomake
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: Build and Run Tests
+        run: CC=${{ matrix.cc }} neomake run test cli
 
   build-windows:
     name: Build (Windows - MSVC)

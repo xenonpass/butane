@@ -14,13 +14,21 @@ jobs:
       security-events: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: neomake-install-main
+      - name: Install neomake
+        run: |
+          cargo install --locked --git https://github.com/sinisterMage/neomake.git --rev main neomake
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: 'c'
       - name: Build
-        run: make all
+        run: neomake run all
       - name: Perform Analysis
         uses: github/codeql-action/analyze@v3

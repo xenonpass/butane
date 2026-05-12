@@ -7,7 +7,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: neomake-install-main
+      - name: Install neomake
+        run: |
+          cargo install --locked --git https://github.com/sinisterMage/neomake.git --rev main neomake
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - name: Install cppcheck
         run: sudo apt-get install cppcheck
       - name: Run cppcheck
-        run: make lint
+        run: neomake run lint
