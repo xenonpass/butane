@@ -5,8 +5,12 @@ INC_FLAGS = -I include -I src/core -I src/crypto -I src/sys
 CFLAGS    = -std=c11 -Wall -Wextra -Wpedantic -O2 $(INC_FLAGS)
 LDFLAGS   = # empty for now
 
-# aes-ni and pclmulqdq intrinsics
-AESNI_FLAGS = -maes -mpclmul -msse4.1
+# aes-ni and pclmulqdq intrinsics (x86-64 only)
+ifeq ($(shell uname -m), arm64)
+  AESNI_FLAGS = 
+else
+  AESNI_FLAGS = -maes -mpclmul -msse4.1
+endif
 
 SRC_DIR   = src
 TEST_DIR  = tests
