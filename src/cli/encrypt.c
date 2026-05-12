@@ -5,10 +5,12 @@
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
-#include <sys/random.h>
 
-#define MAX_INPUT 4096
-#define MAX_PASS  256
+#define CLI_MAX_INPUT 4096
+#define MAX_PASS      256
+
+// delcare random function from aead.c
+extern int secure_random_fill(uint8_t *buf, size_t len);
 
 //read password without echo
 static int read_password(const char *prompt, char *buf, size_t max) {
@@ -37,7 +39,7 @@ static int read_password(const char *prompt, char *buf, size_t max) {
 }
 
 void cmd_encrypt(void) {
-    char text[MAX_INPUT];
+    char text[CLI_MAX_INPUT];
     char password[MAX_PASS];
 
     fprintf(stderr, "Text to Encrypt: ");
@@ -58,7 +60,7 @@ void cmd_encrypt(void) {
 
     // generate random salt
     uint8_t salt[BUTANE_SALT_SIZE];
-    if (getrandom(salt, sizeof(salt), 0) != sizeof(salt)) {
+    if (secure_random_fill(salt, sizeof(salt)) != 0) {
         fprintf(stderr, "[error]: entropy failure\n");
         return;
     }
