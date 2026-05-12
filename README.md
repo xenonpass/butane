@@ -192,5 +192,5 @@ For the full security architecture, trust boundaries, cryptographic design ratio
 Licensed under the [Apache License 2.0](LICENSE).
 
 ```
-Copyright 2026-2027; Mohammed Sajid Shaik
+Copyright 2026; Mohammed Sajid Shaik
 ```
