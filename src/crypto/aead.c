@@ -17,7 +17,7 @@
 #endif
 
 // fill buffer with cryptographically secure random bytes
-static int secure_random_fill(uint8_t *buf, size_t len) {
+int secure_random_fill(uint8_t *buf, size_t len) {
 #if defined(__linux__)
     // linux
     ssize_t result = getrandom(buf, len, 0);
