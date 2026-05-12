@@ -9,7 +9,8 @@
 #include <sys/random.h>
 #elif defined(__APPLE__)
 #include <Security/SecRandom.h>
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(_MSC_VER)
+#include <windows.h>
 #include <bcrypt.h>
 #else
 #include <fcntl.h>
