@@ -28,6 +28,8 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: 'c'
+      - name: Install cppcheck
+        run: sudo apt-get install cppcheck
       - name: Build
         run: neomake run all
       - name: Perform Analysis
