@@ -1,0 +1,35 @@
+name: "CI (Build)"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-unix:
+    name: Build & Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        cc: [gcc, clang]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and Run Tests
+        run: |
+          make CC=${{ matrix.cc }} clean
+          make CC=${{ matrix.cc }} test
+          make CC=${{ matrix.cc }} cli
+
+  build-windows:
+    name: Build (Windows - MSVC)
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Build Library
+        run: .\build.bat

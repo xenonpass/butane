@@ -1,0 +1,13 @@
+name: "Lint"
+
+on: [push, pull_request]
+
+jobs:
+  cppcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cppcheck
+        run: sudo apt-get install cppcheck
+      - name: Run cppcheck
+        run: cppcheck --enable=all --std=c11 ./src ./include --error-exitcode=1
