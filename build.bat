@@ -22,6 +22,15 @@ cl %CFLAGS% /c src\sys\hwdetect.c   /Fo%OBJDIR%\hwdetect.obj
 echo 'Creating Static Library...'
 lib /nologo /out:%LIBDIR%\butane.lib %OBJDIR%\*.obj
 
-echo 'Done: %LIBDIR%\butane.lib'
+echo 'Compiling CLI...'
+cl %CFLAGS% /c src\cli\encrypt.c /Fo%OBJDIR%\encrypt.obj
+cl %CFLAGS% /c src\cli\decrypt.c /Fo%OBJDIR%\decrypt.obj
+cl %CFLAGS% /c src\cli\vault.c /Fo%OBJDIR%\vault.obj
+cl %CFLAGS% /c src\cli\main.c /Fo%OBJDIR%\main.obj
+
+echo 'Linking CLI...'
+link /nologo /out:build\butane.exe %OBJDIR%\encrypt.obj %OBJDIR%\decrypt.obj %OBJDIR%\vault.obj %OBJDIR%\main.obj %LIBDIR%\butane.lib bcrypt.lib
+
+echo 'Done: %LIBDIR%\butane.lib and build\butane.exe'
 
 endlocal
