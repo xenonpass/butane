@@ -13,6 +13,12 @@ else
     AESNI_FLAGS =
 endif
 
+# detect os and link security framework on macos
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    LDFLAGS += -framework Security
+endif
+
 SRC_DIR   = src
 TEST_DIR  = tests
 BUILD_DIR = build

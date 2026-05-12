@@ -47,7 +47,7 @@ outputs = ["${lib_path}"]
 # test-build: compile the test runner and link it against libbutane.a
 [tasks.test-build]
 inputs  = ${test_sources} + ${headers}
-command = "mkdir -p ${build_dir} && ${cc} ${cflags} ${test_dir}/*.c -L ${lib_dir} -lbutane ${ldflags} -o ${test_bin}"
+command = "mkdir -p ${build_dir} && if [ \"$(uname -s)\" = \"Darwin\" ]; then EXTRA_LDFLAGS=\"-framework Security\"; else EXTRA_LDFLAGS=\"\"; fi && ${cc} ${cflags} ${test_dir}/*.c -L ${lib_dir} -lbutane ${ldflags} $EXTRA_LDFLAGS -o ${test_bin}"
 deps = ["lib"]
 outputs = ["${test_bin}"]
 
@@ -59,6 +59,6 @@ deps = ["test-build"]
 # cli: build the `butane` cli, linked against libbutane.a
 [tasks.cli]
 inputs  = ${cli_sources} + ${headers}
-command = "mkdir -p ${build_dir} && ${cc} ${cflags} -I ${src_dir}/cli ${src_dir}/cli/*.c -L ${lib_dir} -lbutane ${ldflags} -o ${cli_bin}"
+command = "mkdir -p ${build_dir} && if [ \"$(uname -s)\" = \"Darwin\" ]; then EXTRA_LDFLAGS=\"-framework Security\"; else EXTRA_LDFLAGS=\"\"; fi && ${cc} ${cflags} -I ${src_dir}/cli ${src_dir}/cli/*.c -L ${lib_dir} -lbutane ${ldflags} $EXTRA_LDFLAGS -o ${cli_bin}"
 deps = ["lib"]
 outputs = ["${cli_bin}"]
