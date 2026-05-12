@@ -1,5 +1,8 @@
 #include "aes256gcm.h"
 #include "butane.h"
+
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+
 #include <emmintrin.h>
 #include <smmintrin.h>
 #include <string.h>
@@ -343,3 +346,21 @@ int aes256gcm_decrypt(const uint8_t *key, const uint8_t *iv12,
 
   return BUTANE_OK;
 }
+
+#else
+
+int aes256gcm_encrypt(const uint8_t *key, const uint8_t *iv12,
+                      const uint8_t *plaintext, size_t plaintext_len,
+                      uint8_t *ciphertext, uint8_t *tag16) {
+    (void)key; (void)iv12; (void)plaintext; (void)plaintext_len; (void)ciphertext; (void)tag16;
+    return BUTANE_ERR_PARAM;
+}
+
+int aes256gcm_decrypt(const uint8_t *key, const uint8_t *iv12,
+                      const uint8_t *ciphertext, size_t ciphertext_len,
+                      uint8_t *plaintext, const uint8_t *tag16) {
+    (void)key; (void)iv12; (void)ciphertext; (void)ciphertext_len; (void)plaintext; (void)tag16;
+    return BUTANE_ERR_PARAM;
+}
+
+#endif
