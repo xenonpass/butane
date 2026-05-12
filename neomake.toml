@@ -1,14 +1,11 @@
 $cc = env("CC", "gcc")
 $ar = env("AR", "ar")
 
-
 $inc_flags = "-I include -I src/core -I src/crypto -I src/sys"
 $cflags    = "-std=c11 -Wall -Wextra -Wpedantic -O2 " + ${inc_flags}
 $ldflags   = env("LDFLAGS", "")
 
-
 $aesni_flags = "-maes -mpclmul -msse4.1" # compiler / linker flags
-
 
 $src_dir   = "src"
 $test_dir  = "tests"
@@ -16,11 +13,9 @@ $build_dir = "build"
 $obj_dir   = "${build_dir}/obj"
 $lib_dir   = "${build_dir}/lib"# layout
 
-
 $lib_path = "${lib_dir}/libbutane.a"
 $test_bin = "${build_dir}/test_runner"
 $cli_bin  = "${build_dir}/butane"# outputs
-
 
 $headers      = glob("include/**/*.h") + glob("src/**/*.h")
 $lib_sources  = glob("src/**/*.c")
