@@ -62,3 +62,7 @@ inputs  = ${cli_sources} + ${headers}
 command = "mkdir -p ${build_dir} && if [ \"$(uname -s)\" = \"Darwin\" ]; then EXTRA_LDFLAGS=\"-framework Security\"; else EXTRA_LDFLAGS=\"\"; fi && ${cc} ${cflags} ${src_dir}/cli/*.c -L ${lib_dir} -lbutane ${ldflags} $EXTRA_LDFLAGS -o ${cli_bin}"
 deps = ["lib"]
 outputs = ["${cli_bin}"]
+
+# lint: run cppcheck
+[tasks.lint]
+command = "cppcheck --enable=all --std=c11 ./src ./include --suppress=missingInclude --suppress=missingIncludeSystem"

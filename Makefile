@@ -40,7 +40,7 @@ CLI_BIN   = $(BUILD_DIR)/butane
 
 vpath %.c $(sort $(dir $(C_SRCS)))
 
-.PHONY: all clean test cli
+.PHONY: all clean test cli lint
 
 all: $(LIB)
 
@@ -67,6 +67,9 @@ test: $(TEST_BIN)
 $(CLI_BIN): $(CLI_SRCS) $(LIB) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CLI_SRCS) -L $(LIB_DIR) -lbutane $(LDFLAGS) -o $@
 cli: $(CLI_BIN)
+
+lint:
+	cppcheck --enable=all --std=c11 ./src ./include --suppress=missingInclude --suppress=missingIncludeSystem
 
 clean:
 	rm -rf $(BUILD_DIR)
