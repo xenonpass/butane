@@ -20,16 +20,18 @@
 
 ## Overview
 
-butane is a pure-C cryptographic library compiled to a static archive (`libbutane.a`). It is designed with one principle above all else: **no cryptographic shortcuts**. The library exposes a minimal, opinionated API to higher-level xenonpass components, deliberately hiding algorithm selection from the user to ensure the most secure path is always taken.
+butane is a pure-C cryptographic library compiled to a static archive (`libbutane.a` / `butane.lib`). It is designed with one principle above all else: **no cryptographic shortcuts**. The library exposes a minimal, opinionated API to higher-level xenonpass components, deliberately hiding algorithm selection from the user to ensure the most secure path is always taken.
 
 ```
-  xenonpass (Frontend [CLI, TUI, WebServer, App, etc.])
+
+    xenonpass (Frontend [CLI, TUI, WebServer, App, etc.])
         │
         ▼
-  libbutane.a  ◄── this repository (xpass/butane)
+    libbutane  ◄── this repository (xpass/butane)
         │
         ▼
-  OS / Hardware (AES-NI, PCLMULQDQ, or fallback)
+    OS / Hardware (AES-NI, PCLMULQDQ, or fallback)
+
 ```
 
 ---
@@ -109,7 +111,7 @@ flowchart LR
     end
 
     subgraph "Random"
-        RNG["OS CSPRNG\n(getrandom / SecRandom)"]
+        RNG["OS CSPRNG\n(getrandom / SecRandom / BCryptGenRandom)"]
     end
 
     KDF -->|"256-bit key"| AES
@@ -121,13 +123,13 @@ flowchart LR
 | Primary AEAD | AES-256-GCM | Hardware-accelerated (AES-NI), constant-time on supported CPUs |
 | Fallback AEAD | XChaCha20-Poly1305 | High-security software fallback for CPUs without AES-NI |
 | KDF | Argon2id | Memory-hard protection against GPU brute-force attacks |
-| Nonce generation | OS CSPRNG | Uses `getrandom` (Linux) or `SecRandomCopyBytes` (Apple) |
+| Nonce generation | OS CSPRNG | Uses `getrandom` (Linux), `SecRandomCopyBytes` (Apple), or `BCryptGenRandom` (Windows) |
 
 ---
 
 ## Key Derivation & Lifecycle
 
-Master passwords are stretched into 256-bit keys using Argon2id. Key material is stored within the `butane_ctx` and protected using `mlock` to prevent swapping to disk.
+Master passwords are stretched into 256-bit keys using Argon2id. Key material is stored within the `butane_ctx` and protected using `mlock` (Unix) or `VirtualLock` (Windows) to prevent swapping to disk.
 
 ```mermaid
 sequenceDiagram
@@ -141,7 +143,7 @@ sequenceDiagram
     User->>Core: butane_derive_key(ctx, password, salt, params)
     Core->>KDF: argon2id(password, salt)
     KDF-->>Core: Derived Master Key
-    Note right of Core: Key stored in mlocked context
+    Note right of Core: Key stored in mlocked/VirtualLocked context
     User->>Core: butane_encrypt(ctx, plaintext, ...)
     Core->>Cipher: aes256gcm or xchacha20poly1305
     Core-->>User: (nonce, ciphertext, tag)
@@ -199,9 +201,9 @@ This ensures the highest possible performance on modern systems while maintainin
 butane prioritizes memory hygiene to prevent sensitive data leakage.
 
 | Guarantee | Mechanism |
-|---|---|
-| Anti-Swap Protection | Master keys and Argon2 work-buffers are locked in RAM via `mlock()` |
-| Guaranteed Wiping | `butane_clean` uses `explicit_bzero` or `memset_s` to prevent compiler optimization |
+|---|---|--- |
+| Anti-Swap Protection | Master keys and Argon2 work-buffers are locked in RAM via `mlock()` (Unix) or `VirtualLock()` (Windows) |
+| Guaranteed Wiping | `butane_clean` uses `explicit_bzero`, `memset_s`, or `SecureZeroMemory` (Windows) to prevent compiler optimization |
 | Context Isolation | Sensitive state is encapsulated in `butane_ctx`; internal structures are cleaned on `butane_free` |
 | Standard Compliance | Compiled with `-Wall -Wextra -Wpedantic` and `-std=c11` |
 
