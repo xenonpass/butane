@@ -1,6 +1,6 @@
 <div align="center">
 
-#  butane · C4H10
+#  butane · C₄H₁₀
 
 **Zero-dependency cryptographic engine for [xenonpass](https://github.com/xenonpass/xenonpass)**
 
