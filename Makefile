@@ -65,8 +65,7 @@ test: $(TEST_BIN)
 
 # cli binary linked against libbutane.a
 $(CLI_BIN): $(CLI_SRCS) $(LIB) | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -I $(SRC_DIR)/cli $(CLI_SRCS) -L $(LIB_DIR) -lbutane $(LDFLAGS) -o $@
-
+	$(CC) $(CFLAGS) $(CLI_SRCS) -L $(LIB_DIR) -lbutane $(LDFLAGS) -o $@
 cli: $(CLI_BIN)
 
 clean:
