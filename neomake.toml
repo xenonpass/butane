@@ -25,6 +25,11 @@ $cli_sources  = glob("src/cli/*.c")
 # aes-ni + pclmulqdq intrinsics, used only by the aes compile unit.
 # inputs
 
+# all: default target to build everything and lint
+[tasks.all]
+command = "echo 'All targets built successfully'"
+deps = ["lib", "cli", "test-build", "lint"]
+
 # compile-aes: aes-gcm unit with hardware intrinsics
 [tasks.compile-aes]
 inputs  = ["src/**/aes256gcm.c"] + ${headers}
