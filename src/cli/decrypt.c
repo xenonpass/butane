@@ -3,15 +3,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(_WIN32)
+#include <windows.h>
+#else
 #include <termios.h>
 #include <unistd.h>
+#endif
 
 #define MAX_PASS 256
 
 static int read_password(const char *prompt, char *buf, size_t max) {
-    struct termios old, noecho;
     fprintf(stderr, "%s", prompt);
 
+#if defined(_WIN32)
+    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE); 
+    DWORD mode = 0;
+    GetConsoleMode(hStdin, &mode);
+    SetConsoleMode(hStdin, mode & (~ENABLE_ECHO_INPUT));
+
+    if (!fgets(buf, (int)max, stdin)) {
+        SetConsoleMode(hStdin, mode);
+        return -1;
+    }
+
+    SetConsoleMode(hStdin, mode);
+    fprintf(stderr, "\n");
+#else
+    struct termios old, noecho;
     tcgetattr(STDIN_FILENO, &old);
     noecho = old;
     noecho.c_lflag &= ~(ECHO);
@@ -24,9 +42,13 @@ static int read_password(const char *prompt, char *buf, size_t max) {
 
     tcsetattr(STDIN_FILENO, TCSANOW, &old);
     fprintf(stderr, "\n");
+#endif
 
     size_t len = strlen(buf);
     if (len > 0 && buf[len - 1] == '\n')
+        buf[len - 1] = '\0';
+    len = strlen(buf);
+    if (len > 0 && buf[len - 1] == '\r')
         buf[len - 1] = '\0';
 
     return 0;
