@@ -2,7 +2,11 @@
 
 setlocal
 
-set CFLAGS=/nologo /std:c11 /W4 /O2 /I include /I src\core /I src\crypto /I src\sys
+set ARCH_FLAGS=
+if "%PROCESSOR_ARCHITECTURE%"=="AMD64" set ARCH_FLAGS=/D_AMD64_
+if "%PROCESSOR_ARCHITECTURE%"=="x86" set ARCH_FLAGS=/D_X86_
+
+set CFLAGS=/nologo /std:c11 /W4 /O2 %ARCH_FLAGS% /I include /I src\core /I src\crypto /I src\sys
 set OBJDIR=build\obj
 set LIBDIR=build\lib
 
