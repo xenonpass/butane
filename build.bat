@@ -31,6 +31,16 @@ cl %CFLAGS% /c src\cli\main.c /Fo%OBJDIR%\main.obj
 echo 'Linking CLI...'
 link /nologo /out:build\butane.exe %OBJDIR%\encrypt.obj %OBJDIR%\decrypt.obj %OBJDIR%\vault.obj %OBJDIR%\main.obj %LIBDIR%\butane.lib bcrypt.lib
 
-echo 'Done: %LIBDIR%\butane.lib and build\butane.exe'
+echo 'Compiling Tests...'
+cl %CFLAGS% /c tests\test_main.c /Fo%OBJDIR%\test_main.obj
+cl %CFLAGS% /c tests\test_context.c /Fo%OBJDIR%\test_context.obj
+cl %CFLAGS% /c tests\test_blake2b.c /Fo%OBJDIR%\test_blake2b.obj
+cl %CFLAGS% /c tests\test_argon2id.c /Fo%OBJDIR%\test_argon2id.obj
+cl %CFLAGS% /c tests\test_aead.c /Fo%OBJDIR%\test_aead.obj
+
+echo 'Linking Test Runner...'
+link /nologo /out:build\test_runner.exe %OBJDIR%\test_main.obj %OBJDIR%\test_context.obj %OBJDIR%\test_blake2b.obj %OBJDIR%\test_argon2id.obj %OBJDIR%\test_aead.obj %LIBDIR%\butane.lib bcrypt.lib
+
+echo 'Done: %LIBDIR%\butane.lib, build\butane.exe and build\test_runner.exe'
 
 endlocal

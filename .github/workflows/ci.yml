@@ -44,8 +44,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
-      - name: Build Library and CLI
+      - name: Build Library, CLI, and Tests
         run: .\build.bat
+      - name: Run Tests
+        run: .\build\test_runner.exe
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
         with:
