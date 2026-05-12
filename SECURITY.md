@@ -201,9 +201,9 @@ This ensures the highest possible performance on modern systems while maintainin
 butane prioritizes memory hygiene to prevent sensitive data leakage.
 
 | Guarantee | Mechanism |
-|---|---|--- |
-| Anti-Swap Protection | Master keys and Argon2 work-buffers are locked in RAM via `mlock()` (Unix) or `VirtualLock()` (Windows) |
-| Guaranteed Wiping | `butane_clean` uses `explicit_bzero`, `memset_s`, or `SecureZeroMemory` (Windows) to prevent compiler optimization |
+|---|---|
+| Anti-Swap Protection | Master keys and Argon2 work-buffers are locked in RAM via `mlock()` (Unix/Apple) or `VirtualLock()` (Windows) |
+| Guaranteed Wiping | `butane_clean` uses `explicit_bzero` (Unix/Apple), `memset_s` (C11), `SecureZeroMemory` (Windows), or a `volatile` pointer fallback to prevent compiler optimization |
 | Context Isolation | Sensitive state is encapsulated in `butane_ctx`; internal structures are cleaned on `butane_free` |
 | Standard Compliance | Compiled with `-Wall -Wextra -Wpedantic` and `-std=c11` |
 
