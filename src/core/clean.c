@@ -2,6 +2,10 @@
 #include "butane.h"
 #include <string.h>
 
+#if defined(__unix__) || defined(__APPLE__)
+#include <strings.h>
+#endif
+
 #if defined(_WIN32)
 #include <windows.h>
 #endif
@@ -14,7 +18,13 @@ void butane_clean(void *ptr, size_t len) {
     memset_s(ptr, len, 0, len);
 #elif defined(_WIN32)
     SecureZeroMemory(ptr, len);
-#else
+#elif defined(HAVE_EXPLICIT_BZERO)
     explicit_bzero(ptr, len);
+#else
+    // memset fallback
+    volatile unsigned char *vptr = (volatile unsigned char *)ptr;
+    for (size_t i = 0; i < len; i++) {
+        vptr[i] = 0;
+    }
 #endif
 }
