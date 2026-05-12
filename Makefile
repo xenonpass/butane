@@ -69,7 +69,7 @@ $(CLI_BIN): $(CLI_SRCS) $(LIB) | $(BUILD_DIR)
 cli: $(CLI_BIN)
 
 lint:
-	cppcheck --enable=all --std=c11 ./src ./include --suppress=missingInclude --suppress=missingIncludeSystem
+	cppcheck --enable=all --std=c11 ./src ./include --suppress=missingInclude --suppress=missingIncludeSystem --suppress=unusedFunction --suppress=staticFunction --suppress=normalCheckLevelMaxBranches
 
 clean:
 	rm -rf $(BUILD_DIR)

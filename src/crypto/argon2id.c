@@ -273,7 +273,7 @@ static void initial_hash(uint8_t *blockhash,
     butane_clean(&S, sizeof(S));
 }
 
-static void fill_first_blocks(argon2_instance *inst, uint8_t *blockhash) {
+static void fill_first_blocks(argon2_instance *inst, const uint8_t *blockhash) {
     uint8_t blockhash_bytes[ARGON2_PREHASH_SEED_LENGTH];
     memcpy(blockhash_bytes, blockhash, ARGON2_PREHASH_DIGEST_LENGTH);
 

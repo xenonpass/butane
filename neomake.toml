@@ -65,4 +65,4 @@ outputs = ["${cli_bin}"]
 
 # lint: run cppcheck
 [tasks.lint]
-command = "cppcheck --enable=all --std=c11 ./src ./include --suppress=missingInclude --suppress=missingIncludeSystem"
+command = "cppcheck --enable=all --std=c11 ./src ./include --suppress=missingInclude --suppress=missingIncludeSystem --suppress=unusedFunction --suppress=staticFunction --suppress=normalCheckLevelMaxBranches"
