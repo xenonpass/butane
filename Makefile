@@ -5,11 +5,12 @@ INC_FLAGS = -I include -I src/core -I src/crypto -I src/sys
 CFLAGS    = -std=c11 -Wall -Wextra -Wpedantic -O2 $(INC_FLAGS)
 LDFLAGS   = # empty for now
 
-# aes-ni and pclmulqdq intrinsics (x86-64 only)
-ifeq ($(shell uname -m), arm64)
-  AESNI_FLAGS = 
+# detect architecture to prevent gcc from crashing on arm devices
+UNAME_M := $(shell uname -m)
+ifneq (,$(filter $(UNAME_M),x86_64 amd64 i386 i686))
+    AESNI_FLAGS = -maes -mpclmul -msse4.1
 else
-  AESNI_FLAGS = -maes -mpclmul -msse4.1
+    AESNI_FLAGS =
 endif
 
 SRC_DIR   = src
@@ -40,7 +41,7 @@ all: $(LIB)
 $(OBJ_DIR) $(LIB_DIR) $(BUILD_DIR):
 	mkdir -p $@
 
-# aes256gcm needs hardware intrinsic flags
+# aes256gcm needs hardware intrinsic flags ONLY on x86
 $(OBJ_DIR)/aes256gcm.o: aes256gcm.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(AESNI_FLAGS) -c $< -o $@
 

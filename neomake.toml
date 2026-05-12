@@ -28,7 +28,7 @@ $cli_sources  = glob("src/cli/*.c")
 # compile-aes: aes-gcm unit with hardware intrinsics
 [tasks.compile-aes]
 inputs  = ["src/**/aes256gcm.c"] + ${headers}
-command = "mkdir -p ${obj_dir} && ${cc} ${cflags} ${aesni_flags} -c \"$(find ${src_dir} -name aes256gcm.c -print -quit)\" -o ${obj_dir}/aes256gcm.o"
+command = "mkdir -p ${obj_dir} && case \"$(uname -m)\" in x86_64|amd64|i386|i686) AESNI=\"${aesni_flags}\" ;; *) AESNI=\"\" ;; esac && ${cc} ${cflags} $AESNI -c \"$(find ${src_dir} -name aes256gcm.c -print -quit)\" -o ${obj_dir}/aes256gcm.o"
 outputs = ["${obj_dir}/aes256gcm.o"]
 
 # compile-lib: every other library object file
