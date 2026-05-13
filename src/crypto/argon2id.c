@@ -197,9 +197,9 @@ static void fill_segment(const argon2_instance *inst,
         starting_index = 2;
 
     uint32_t curr_offset = lane * inst->lane_length + slice * inst->segment_length + starting_index;
-    uint32_t prev_offset = curr_offset - 1;
 
-    for (uint32_t i = starting_index; i < inst->segment_length; i++, curr_offset++, prev_offset++) {
+    for (uint32_t i = starting_index; i < inst->segment_length; i++, curr_offset++) {
+        uint32_t prev_offset = curr_offset - 1;
         if (curr_offset % inst->lane_length == 0)
             prev_offset = curr_offset + inst->lane_length - 1;
 
