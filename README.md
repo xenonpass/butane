@@ -102,7 +102,8 @@ butane/
 ├── Makefile                # GNU Make build
 ├── neomake.toml            # neomake build (preferred)
 ├── build.bat               # Windows MSVC build script
-└── SECURITY.md             # full security design document
+├── SECURITY.md             # full security design document
+└── CONTRIBUTING.md         # contribution guidelines
 ```
 
 ---
